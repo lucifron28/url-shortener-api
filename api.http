@@ -1,0 +1,12 @@
+### get link with code
+GET http://localhost:5001/abc123
+
+
+### add url
+POST  http://localhost:5001/links
+Content-Type: application/json
+
+{
+    "code": "dev123",
+    "url": "https://github.com"
+}

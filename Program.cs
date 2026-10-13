@@ -36,5 +36,21 @@ app.MapGet("/{code}", (string code) =>
     return Results.NotFound();
 });
 
+app.MapPost("/links", (CreateLinkRequest request) =>
+{
+    if (!IsValidCode(request.Code))
+    {
+        return Results.BadRequest();
+    }
+
+    if (links.TryAdd(request.Code, request.Url))
+    {
+        return Results.Ok();
+    } else
+    {
+        return Results.Conflict();
+    }
+});
 
 app.Run("http://localhost:5001");
+record CreateLinkRequest(string Code, string Url);
