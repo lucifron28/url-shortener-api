@@ -1,29 +1,30 @@
 # URL Shortener
 
-A C#/.NET learning project that starts as a small console application and will gradually evolve into an ASP.NET Core URL shortener API.
+A learning project built with **C#, .NET 10, and ASP.NET Core Minimal APIs**. It began as a console prototype and is being expanded one backend concept at a time.
 
-> **Current status:** Milestones 001 and 002 passed source review. This is still a **console prototype**, not an HTTP API. It does not serve requests, redirect visitors, generate unique short codes, or persist mappings between runs.
+> **Current status:** Milestones 001–003 passed source review. The app now handles HTTP GET requests and redirects a known short code. It **does not yet create links through HTTP**, generate short codes, or store data permanently.
 
-## What it does today
+## Current behavior
 
-The console program implements two functions:
+The server listens at `http://localhost:5001`.
 
-- `IsValidCode(string code)` — accepts codes containing at least 4 characters.
-- `BuildShortUrl(string domain, string code)` — checks the code and constructs a URL string such as `https://short.example/abc123`. For a code shorter than 4 characters, it returns `Invalid short code`.
+| Request | Expected response | Notes |
+| --- | --- | --- |
+| `GET /health` | `200 OK`, body `OK` | Simple health endpoint |
+| `GET /abc123` | `302 Found` | `Location: https://google.com` |
+| `GET /missing` | `404 Not Found` | No matching dictionary key |
 
-The console entry point demonstrates **both** a valid code (`abc123`) and an invalid code (`ab`). It also initializes an in-memory `Dictionary<string, string>` with a short-code-to-original-URL mapping, retrieves an existing entry, safely handles a missing key using `TryGetValue`, and demonstrates rejecting a duplicate through both `TryAdd` and `ContainsKey`.
+The application uses an in-memory `Dictionary<string, string>` to map short codes to original URLs:
 
-The two duplicate-handling examples are alternative teaching approaches; a practical implementation would generally choose one instead of running both.
+```csharp
+["abc123"] = "https://google.com"
+```
+
+The route `/{code}` uses `TryGetValue` and **returns** `Results.Redirect(value)` or `Results.NotFound()`. The earlier `IsValidCode` and `BuildShortUrl` helper methods remain in `Program.cs` as learning artifacts but are not yet used by the HTTP endpoints.
 
 ## Requirements
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/en-us/download/dotnet/10.0)
-
-Check your installed SDK with:
-
-```powershell
-dotnet --version
-```
 
 ## Run locally
 
@@ -33,45 +34,35 @@ cd url-shortener-api
 dotnet run
 ```
 
-With the currently hardcoded examples, the **expected** output from `Program.cs` is (source-reviewed, not independently executed):
+Use a separate terminal to test the server:
 
-```text
-https://google.com
-Short code not found
-Key already exists!
-Key already exists!
-https://short.example/abc123
-Invalid short code
+```powershell
+curl.exe -i http://localhost:5001/health
+curl.exe -i http://localhost:5001/abc123
+curl.exe -i http://localhost:5001/missing
 ```
 
-You can also check compilation with `dotnet build`.
+The second response should have status `302 Found` and a `Location: https://google.com` header. The third should have status `404 Not Found`. These results are inferred from the source; actual execution was not independently verified during the code review.
+
+**Note:** `curl.exe -I` sends an HTTP **HEAD** request, not GET. The application currently registers only GET routes, so use `-i` rather than `-I` for this exercise.
 
 ## Project files
 
 | File | Purpose |
 | --- | --- |
-| `Program.cs` | Console entry point, short-code validation, URL formatting, and in-memory dictionary demonstrations |
-| `url-shorterner-api.csproj` | .NET 10 console project settings |
-| `.gitignore` | Excludes generated build artifacts and common local files |
+| `Program.cs` | Minimal API setup, in-memory URL mappings, health route, redirect route |
+| `url-shorterner-api.csproj` | .NET 10 ASP.NET Core Web SDK project (original filename retained) |
+| `.gitignore` | Ignores local/generated files |
 
-## Development milestones
+## Learning milestones
 
-- [x] Initialize a .NET 10 console project.
-- [x] Implement basic short-code length validation.
-- [x] Construct a formatted short URL from a domain and code.
-- [x] Reject too-short codes in the URL-building function.
-- [x] Demonstrate both valid and invalid codes in the console and review the implementation (source-reviewed; run locally to verify output).
-- [x] Introduce in-memory short-code-to-original-URL mappings and demonstrate existing, missing, and duplicate-code behavior (source-reviewed).
-- [ ] Develop the mappings into real application behavior with HTTP endpoints and redirects.
-- [ ] Convert the console prototype into an ASP.NET Core API.
-- [ ] Implement actual HTTP redirects.
-- [ ] Add SQL persistence with Entity Framework Core.
-- [ ] Introduce appropriate validation, tests, security, and deployment.
+- [x] 001 — Console prototype: validate and format short codes
+- [x] 002 — Use a dictionary for URL mappings, safe lookup, and duplicate-key handling
+- [x] 003 — Run an ASP.NET Core server with `GET /health`, `GET /{code}`, 302 redirects and 404 responses
+- [ ] 004 — Accept new URL mappings through an HTTP POST endpoint
+- [ ] Add persistence with SQL and Entity Framework Core
+- [ ] Add appropriate validation, tests, security, and deployment
 
-These are learning milestones, **not claims of implemented features**. The project will evolve incrementally rather than introducing unnecessary architecture upfront.
+This is a learning roadmap, not a feature list for a production-ready service. Source reviews do not replace local build and runtime tests.
 
-## Learning approach
-
-This repository stores the **application source code**. Lesson notes, conceptual explanations, assessments, and progress are tracked separately in the [engineering learning vault](https://github.com/lucifron28/engineering-learning-vault).
-
-The goal is to understand and implement each concept independently, commit working increments, and review the actual code before introducing the next feature.
+Conceptual lessons and course progress are maintained separately in the [engineering-learning-vault](https://github.com/lucifron28/engineering-learning-vault).
