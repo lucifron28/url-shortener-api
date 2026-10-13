@@ -1,5 +1,5 @@
 ### get link with code
-GET http://localhost:5001/links/abc123
+GET http://localhost:5001/abc123
 
 
 ### test valid code
