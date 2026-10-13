@@ -2,11 +2,21 @@
 GET http://localhost:5001/abc123
 
 
-### add url
+### test valid code
 POST  http://localhost:5001/links
 Content-Type: application/json
 
 {
     "code": "dev123",
+    "url": "https://github.com"
+}
+
+### test invalid code
+
+POST http://localhost:5001/links
+Content-Type: application/json
+
+{
+    "code": "d",
     "url": "https://github.com"
 }
