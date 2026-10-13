@@ -2,7 +2,7 @@
 
 A C#/.NET learning project that starts as a small console application and will gradually evolve into an ASP.NET Core URL shortener API.
 
-> **Current status:** Milestone 001 — console prototype in progress. This is **not yet an HTTP API**: it does not serve requests, redirect visitors, generate unique short codes, or store links.
+> **Current status:** Milestone 001 — console prototype code review passed (runtime not independently verified). This is **not yet an HTTP API**: it does not serve requests, redirect visitors, generate unique short codes, or store links.
 
 ## What it does today
 
@@ -11,7 +11,7 @@ The console program implements two functions:
 - `IsValidCode(string code)` — accepts codes containing at least 4 characters.
 - `BuildShortUrl(string domain, string code)` — checks the code and constructs a URL string such as `https://short.example/abc123`. For a code shorter than 4 characters, it returns `Invalid short code`.
 
-The current console entry point demonstrates a **valid** code. The invalid-code demonstration is still to be added as part of Milestone 001.
+The console entry point demonstrates **both** a valid code (`abc123`) and an invalid code (`ab`).
 
 ## Requirements
 
@@ -31,10 +31,11 @@ cd url-shorterner-api
 dotnet run
 ```
 
-With the currently hardcoded valid example, the output is:
+With the currently hardcoded examples, the expected output is:
 
 ```text
 https://short.example/abc123
+Invalid short code
 ```
 
 You can also check compilation with `dotnet build`.
@@ -53,7 +54,7 @@ You can also check compilation with `dotnet build`.
 - [x] Implement basic short-code length validation.
 - [x] Construct a formatted short URL from a domain and code.
 - [x] Reject too-short codes in the URL-building function.
-- [ ] Demonstrate both valid and invalid codes in the console and review the implementation.
+- [x] Demonstrate both valid and invalid codes in the console and review the implementation (source-reviewed; run locally to verify output).
 - [ ] Store multiple original-URL/short-code mappings in memory.
 - [ ] Convert the console prototype into an ASP.NET Core API.
 - [ ] Implement actual HTTP redirects.
