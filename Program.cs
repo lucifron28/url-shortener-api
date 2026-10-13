@@ -26,7 +26,7 @@ var app = builder.Build();
 
 app.MapGet("/health", () => "OK");
 
-app.MapGet("/links/{code}", (string code) =>
+app.MapGet("/{code}", (string code) =>
 {
     Console.WriteLine(code);
     if (links.TryGetValue(code, out string? value))
@@ -45,7 +45,7 @@ app.MapPost("/links", (CreateLinkRequest request) =>
 
     if (links.TryAdd(request.Code, request.Url))
     {
-        return Results.Created($"/links/{request.Code}", request);
+        return Results.Created($"/{request.Code}", request);
     } else
     {
         return Results.Conflict();
