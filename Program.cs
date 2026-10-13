@@ -14,13 +14,22 @@ string BuildShortUrl(string domain, string code)
     }
 }
 
-string url = "https://short.example";
+Dictionary<string, string> links = new()
+{
+    ["abc123"] = "google.com"
+};
 
-// test for valid code
-string validCode = "abc123";
-Console.WriteLine(BuildShortUrl(url, validCode));
+// get value
+Console.WriteLine(links["abc123"]);
 
-// test for invalid code
-string invalidCode = "ab";
-Console.WriteLine(BuildShortUrl(url, invalidCode));
+// get value of a key that doesnt exist
+if (links.TryGetValue("missing", out string? value))
+{
+    Console.WriteLine(value);
+} else
+{
+    Console.WriteLine("Short code not found");
+}
 
+// add duplicate key
+links.Add("abc123", "facebook.com");
