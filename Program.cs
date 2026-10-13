@@ -45,7 +45,7 @@ app.MapPost("/links", (CreateLinkRequest request) =>
 
     if (links.TryAdd(request.Code, request.Url))
     {
-        return Results.Ok();
+        return Results.Created();
     } else
     {
         return Results.Conflict();
