@@ -26,7 +26,7 @@ var app = builder.Build();
 
 app.MapGet("/health", () => "OK");
 
-app.MapGet("/{code}", (string code) =>
+app.MapGet("/links/{code}", (string code) =>
 {
     Console.WriteLine(code);
     if (links.TryGetValue(code, out string? value))
