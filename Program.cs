@@ -2,7 +2,7 @@
 
 bool IsValidCode(string code)
 {
-    return code.Length >= 4 && !string.IsNullOrWhiteSpace(code);
+    return !string.IsNullOrWhiteSpace(code) && code.Length >= 4;
 }
 
 string BuildShortUrl(string domain, string code)
@@ -45,7 +45,7 @@ app.MapPost("/links", (CreateLinkRequest request) =>
 
     if (links.TryAdd(request.Code, request.Url))
     {
-        return Results.Created($"links{request.Code}", request);
+        return Results.Created($"links/{request.Code}", request);
     } else
     {
         return Results.Conflict();
