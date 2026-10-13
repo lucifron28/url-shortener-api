@@ -15,6 +15,12 @@ string BuildShortUrl(string domain, string code)
 }
 
 string url = "https://short.example";
-string code = "abc123";
 
-Console.WriteLine(BuildShortUrl(url, code));
+// test for valid code
+string validCode = "abc123";
+Console.WriteLine(BuildShortUrl(url, validCode));
+
+// test for invalid code
+string invalidCode = "ab";
+Console.WriteLine(url, invalidCode);
+
