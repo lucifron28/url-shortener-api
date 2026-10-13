@@ -26,8 +26,8 @@ dotnet --version
 ## Run locally
 
 ```powershell
-git clone https://github.com/lucifron28/url-shorterner-api.git
-cd url-shorterner-api
+git clone https://github.com/lucifron28/url-shortener-api.git
+cd url-shortener-api
 dotnet run
 ```
 
