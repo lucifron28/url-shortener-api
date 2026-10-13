@@ -1,26 +1,34 @@
 # URL Shortener
 
-A learning project built with **C#, .NET 10, and ASP.NET Core Minimal APIs**. It began as a console prototype and is being expanded one backend concept at a time.
+A learning project in **C#, .NET 10, and ASP.NET Core Minimal APIs**. This began as a console exercise and is being expanded one backend concept at a time.
 
-> **Current status:** Milestones 001–003 passed source review. The app now handles HTTP GET requests and redirects a known short code. It **does not yet create links through HTTP**, generate short codes, or store data permanently.
+> **Current status:** Milestones 001–004 passed source review. The API creates in-memory mappings using HTTP POST and redirects existing codes using HTTP GET. The learner reports manually verifying duplicate POST requests return 409. Build/runtime behavior has not been independently executed by the reviewer. This is **not a production-ready URL shortener**.
 
-## Current behavior
+## API behavior
 
 The server listens at `http://localhost:5001`.
 
-| Request | Expected response | Notes |
+| Request | Expected response | Details |
 | --- | --- | --- |
-| `GET /health` | `200 OK`, body `OK` | Simple health endpoint |
-| `GET /abc123` | `302 Found` | `Location: https://google.com` |
-| `GET /missing` | `404 Not Found` | No matching dictionary key |
+| `GET /health` | `200 OK` | Body: `OK` |
+| `GET /links/abc123` | `302 Found` | `Location: https://google.com` (seeded mapping) |
+| `GET /links/missing` | `404 Not Found` | Unknown code |
+| `POST /links` with a new, valid code | `201 Created` | `Location: /links/{code}`; JSON body echoes submitted request |
+| `POST /links` with a code shorter than 4 characters or blank/missing | `400 Bad Request` | Basic code validation |
+| `POST /links` with an existing code | `409 Conflict` | Does not replace the existing mapping |
 
-The application uses an in-memory `Dictionary<string, string>` to map short codes to original URLs:
+Example JSON body for `POST /links`:
 
-```csharp
-["abc123"] = "https://google.com"
+```json
+{
+  "code": "dev123",
+  "url": "https://github.com"
+}
 ```
 
-The route `/{code}` uses `TryGetValue` and **returns** `Results.Redirect(value)` or `Results.NotFound()`. The earlier `IsValidCode` and `BuildShortUrl` helper methods remain in `Program.cs` as learning artifacts but are not yet used by the HTTP endpoints.
+The created resource is currently accessible at **`GET /links/dev123`**, which redirects to the stored URL. The route prefix is a deliberate current-implementation detail; the shorter `/{code}` route was used in an earlier milestone.
+
+Mappings are held in an in-memory `Dictionary<string, string>` and are lost when the process restarts. `TryAdd` rejects existing keys during ordinary sequential requests, but it **does not make the shared dictionary thread-safe**. Concurrency control, proper URL validation and safe redirect policies are follow-up lessons.
 
 ## Requirements
 
@@ -34,35 +42,35 @@ cd url-shortener-api
 dotnet run
 ```
 
-Use a separate terminal to test the server:
+In a separate terminal:
 
 ```powershell
 curl.exe -i http://localhost:5001/health
-curl.exe -i http://localhost:5001/abc123
-curl.exe -i http://localhost:5001/missing
+curl.exe -i http://localhost:5001/links/abc123
+curl.exe -i http://localhost:5001/links/missing
 ```
 
-The second response should have status `302 Found` and a `Location: https://google.com` header. The third should have status `404 Not Found`. These results are inferred from the source; actual execution was not independently verified during the code review.
+Use `api.http` with a REST Client extension to send the JSON POST request. Sending the same valid POST twice **without restarting the server** is a simple manual check of the 409 duplicate-code branch. Sending a one-character code checks the 400 path. After creating `dev123`, check `GET /links/dev123` to inspect the redirect.
 
-**Note:** `curl.exe -I` sends an HTTP **HEAD** request, not GET. The application currently registers only GET routes, so use `-i` rather than `-I` for this exercise.
+`curl.exe -I` issues **HEAD**, not GET; use `-i` for these GET examples.
 
-## Project files
+## Main files
 
 | File | Purpose |
 | --- | --- |
-| `Program.cs` | Minimal API setup, in-memory URL mappings, health route, redirect route |
+| `Program.cs` | Minimal API, request record, in-memory mappings, validation and HTTP routes |
+| `api.http` | Manual REST Client request examples |
 | `url-shorterner-api.csproj` | .NET 10 ASP.NET Core Web SDK project (original filename retained) |
-| `.gitignore` | Ignores local/generated files |
 
 ## Learning milestones
 
 - [x] 001 — Console prototype: validate and format short codes
-- [x] 002 — Use a dictionary for URL mappings, safe lookup, and duplicate-key handling
-- [x] 003 — Run an ASP.NET Core server with `GET /health`, `GET /{code}`, 302 redirects and 404 responses
-- [ ] 004 — Accept new URL mappings through an HTTP POST endpoint
-- [ ] Add persistence with SQL and Entity Framework Core
-- [ ] Add appropriate validation, tests, security, and deployment
+- [x] 002 — Dictionary URL mappings, safe lookup and duplicate handling
+- [x] 003 — Minimal API `GET /health`, redirect and 404 responses
+- [x] 004 — JSON-bound `POST /links` with 201, 400 and 409 responses (source-reviewed; manual duplicate check user-reported)
+- [ ] Validate URL inputs and safe redirect behavior
+- [ ] Handle concurrent dictionary access safely
+- [ ] Add SQL persistence with Entity Framework Core
+- [ ] Add automated HTTP tests, logging, secure configuration and deployment
 
-This is a learning roadmap, not a feature list for a production-ready service. Source reviews do not replace local build and runtime tests.
-
-Conceptual lessons and course progress are maintained separately in the [engineering-learning-vault](https://github.com/lucifron28/engineering-learning-vault).
+The engineering-learning notes and assessed lesson history live in the [engineering-learning-vault](https://github.com/lucifron28/engineering-learning-vault). Source review does not replace local build verification or automated tests.
