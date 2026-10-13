@@ -22,5 +22,5 @@ Console.WriteLine(BuildShortUrl(url, validCode));
 
 // test for invalid code
 string invalidCode = "ab";
-Console.WriteLine(url, invalidCode);
+Console.WriteLine(BuildShortUrl(url, invalidCode));
 
