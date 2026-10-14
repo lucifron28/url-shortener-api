@@ -79,3 +79,4 @@ app.MapPost("/links", (CreateLinkRequest request) =>
 
 app.Run("http://localhost:5001");
 record CreateLinkRequest(string Code, string Url);
+public partial class Program { }
