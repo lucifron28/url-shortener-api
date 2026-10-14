@@ -30,10 +30,14 @@ bool IsValidUrl(string? url)
 
 }
 Console.WriteLine(IsValidUrl("https://github.com"));
+Console.WriteLine(IsValidUrl("http://example.com"));
 
 // returns false
 Console.WriteLine(IsValidUrl("github.com"));
 Console.WriteLine(IsValidUrl("javascript:alert(1)"));
+Console.WriteLine(IsValidUrl("file:///C:/test.txt"));
+Console.WriteLine(IsValidUrl(null));
+Console.WriteLine(IsValidUrl(""));
 
 ConcurrentDictionary<string, string> links = new()
 {
@@ -57,7 +61,7 @@ app.MapGet("/{code}", (string code) =>
 
 app.MapPost("/links", (CreateLinkRequest request) =>
 {
-    if (!IsValidCode(request.Code))
+    if (!IsValidCode(request.Code) || !IsValidUrl(request.Url))
     {
         return Results.BadRequest();
     }
