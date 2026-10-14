@@ -16,6 +16,25 @@ string BuildShortUrl(string domain, string code)
     }
 }
 
+bool IsValidUrl(string? url)
+{
+    if (Uri.TryCreate(url, UriKind.Absolute, out Uri? parsed))
+    {
+        if (parsed.Scheme == Uri.UriSchemeHttp || parsed.Scheme == Uri.UriSchemeHttps)
+        {
+            return true;
+        }
+        return false;
+    }
+    return false;
+
+}
+Console.WriteLine(IsValidUrl("https://github.com"));
+
+// returns false
+Console.WriteLine(IsValidUrl("github.com"));
+Console.WriteLine(IsValidUrl("javascript:alert(1)"));
+
 ConcurrentDictionary<string, string> links = new()
 {
     ["abc123"] = "https://google.com"
