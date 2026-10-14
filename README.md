@@ -29,7 +29,7 @@ Example JSON body for `POST /links`:
 
 The new short link is accessible at **`GET /dev123`**, which redirects to the submitted URL.
 
-`IsValidUrl(string? url)` uses `Uri.TryCreate(url, UriKind.Absolute, out Uri? parsed)` and allows only `http:` and `https:` schemes. The validator is used by `POST /links` before a mapping is inserted. This blocks unsupported URI schemes, **not** links to malicious HTTPS websites; broader redirect-abuse prevention remains future work. Route paths like `/health` and `/links` should eventually be reserved to prevent collisions with API endpoints.
+`IsValidUrl(string? url)` uses `Uri.TryCreate(url, UriKind.Absolute, out Uri? parsed)` and allows only `http:` and `https:` schemes. The validator is used by `POST /links` before a mapping is inserted. This blocks unsupported URI schemes, **not** links to malicious HTTPS websites; broader redirect-abuse prevention remains future work. The short code `health` is now reserved case-insensitively because literal GET `/health` takes precedence over dynamic GET `/{code}`. The code `links` is not reserved yet because only POST `/links` is registered literally.
 
 Mappings are held in an in-memory **`ConcurrentDictionary<string, string>`**:
 
