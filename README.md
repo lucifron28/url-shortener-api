@@ -2,7 +2,7 @@
 
 A learning project in **C#, .NET 10, and ASP.NET Core Minimal APIs**. This began as a console exercise and is being expanded one backend concept at a time.
 
-> **Current status:** Milestones 001–004 and the concurrent-collection exercise passed source review. The API creates in-memory mappings using HTTP POST and redirects known codes using HTTP GET. The learner reported manually verifying that a second identical POST returns 409. The reviewer inspected source, not the application's runtime; this is **not a production-ready URL shortener**.
+> **Current status (2026-10-14):** Backend lessons 001–013 covering C#, HTTP, Minimal APIs, in-memory concurrent link creation, validation and reserved codes passed source review. Lesson 014 automated HTTP testing is in progress. Test project setup exists; the learner reports `dotnet test UrlShortener.slnx` builds successfully and runs **one empty generated sample test** (not an API integration test). Reviewer has not independently executed the application. This is **not a production-ready URL shortener**.
 
 ## API behavior
 
@@ -64,6 +64,18 @@ curl.exe -i http://localhost:5001/missing
 
 The `api.http` file contains example POST requests for both valid and invalid destinations (such as scheme-less, `javascript:`, and `file:` URLs). The learner reported testing these plus temporary console checks for null and empty strings; the reviewer did not independently run the application. You can send the valid one twice **without restarting the server** to check for 409 Conflict on the second attempt; submit the short-code example to check the 400 branch. After adding a code, check `GET /dev123` for the redirect. `curl.exe -I` sends **HEAD**, not GET; use `-i` for these GET examples.
 
+## Automated test project (scaffolded, not completed)
+
+This repository includes `UrlShortener.slnx`, which groups the root API and `tests/UrlShortener.Tests/UrlShortener.Tests.csproj`. The test project references the API and uses xUnit plus `Microsoft.AspNetCore.Mvc.Testing` for future in-process HTTP integration tests. Root API compilation excludes test source files; the application exposes a partial `Program` class to its test assembly.
+
+Run the existing test project with:
+
+```powershell
+dotnet test UrlShortener.slnx
+```
+
+**Verification boundary:** The learner's local output on 2026-10-14 shows **1 passed, 0 failed** and compiler warning `CS8321` (unused `BuildShortUrl`). The only test at the audited GitHub HEAD is `tests/UrlShortener.Tests/UnitTest1.cs`, containing an empty `[Fact]` method: it verifies xUnit test discovery, **not endpoint behavior**. The first HTTP integration test is being written separately, with the initial expected result being POST `/links` + reserved `health` code → `400 Bad Request`.
+
 ## Main files
 
 | File | Purpose |
@@ -71,6 +83,8 @@ The `api.http` file contains example POST requests for both valid and invalid de
 | `Program.cs` | Minimal API, request record, in-memory concurrent mappings, validation, HTTP routes |
 | `api.http` | Manual REST Client request examples (not automated tests) |
 | `url-shorterner-api.csproj` | .NET 10 ASP.NET Core Web SDK project (original filename retained) |
+| `UrlShortener.slnx` | Solution grouping API and xUnit test projects |
+| `tests/UrlShortener.Tests/` | xUnit testing scaffold and future HTTP integration tests |
 
 ## Learning milestones
 
@@ -83,7 +97,9 @@ The `api.http` file contains example POST requests for both valid and invalid de
 - [x] 007 — Reject reserved short code `health` case-insensitively (source-reviewed)
 - [ ] Revisit additional reserved names if new GET routes are added; address phishing/redirect-abuse risks
 - [ ] Persist mappings using SQL and Entity Framework Core
-- [ ] Add automated HTTP tests, logging, secure configuration and deployment
+- [x] 008 — Set up xUnit project and solution; local test runner executes one empty sample test (user-reported, source-reviewed)
+- [ ] Write and run meaningful automated HTTP integration tests
+- [ ] Add logging, secure configuration and deployment
 
 Future work should include URL validation and abuse prevention before exposure to untrusted clients. Automated tests and independent runtime/load verification are not claimed here.
 
