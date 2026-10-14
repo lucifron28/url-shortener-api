@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Options;
+﻿using System.Collections.Concurrent;
 
 bool IsValidCode(string code)
 {
@@ -16,7 +16,7 @@ string BuildShortUrl(string domain, string code)
     }
 }
 
-Dictionary<string, string> links = new()
+ConcurrentDictionary<string, string> links = new()
 {
     ["abc123"] = "https://google.com"
 };
