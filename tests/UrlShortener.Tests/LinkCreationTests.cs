@@ -21,7 +21,7 @@ public class LinkCreationTests
         };
 
         // Act 
-        var res = await client.PostAsJsonAsync($"/links", data);
+        var res = await client.PostAsJsonAsync("/links", data);
 
         // Assert
         Assert.Equal(HttpStatusCode.BadRequest, res.StatusCode);
