@@ -48,3 +48,31 @@ Content-Type: application/json
     "code": "qwer125",
     "url": "file:///C:/test.txt"
 }
+
+### test if code health is rejected (all lowercase)
+POST http://localhost:5001/links
+Content-Type: application/json
+
+{
+    "code": "health",
+    "url": "https://example.com"
+}
+
+### test if code health is rejected (all uppercase)
+POST http://localhost:5001/links 
+Content-Type: application/json
+
+{
+    "code": "HEALTH",
+    "url": "https://example.com"
+}
+
+
+### test if code health is rejected (uppercase & lowercase)
+POST http://localhost:5001/links
+Content-Type: application/json
+
+{
+    "code": "hEAlth",
+    "url": "https://example.com"
+}
