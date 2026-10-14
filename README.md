@@ -2,7 +2,7 @@
 
 A learning project in **C#, .NET 10, and ASP.NET Core Minimal APIs**. This began as a console exercise and is being expanded one backend concept at a time.
 
-> **Current status:** Milestones 001–004 passed source review. The API creates in-memory mappings using HTTP POST and redirects existing codes using HTTP GET. The learner reports manually verifying duplicate POST requests return 409. Build/runtime behavior has not been independently executed by the reviewer. This is **not a production-ready URL shortener**.
+> **Current status:** Milestones 001–004 and the concurrent-collection exercise passed source review. The API creates in-memory mappings using HTTP POST and redirects known codes using HTTP GET. The learner reported manually verifying that a second identical POST returns 409. The reviewer inspected source, not the application's runtime; this is **not a production-ready URL shortener**.
 
 ## API behavior
 
@@ -11,10 +11,10 @@ The server listens at `http://localhost:5001`.
 | Request | Expected response | Details |
 | --- | --- | --- |
 | `GET /health` | `200 OK` | Body: `OK` |
-| `GET /links/abc123` | `302 Found` | `Location: https://google.com` (seeded mapping) |
-| `GET /links/missing` | `404 Not Found` | Unknown code |
-| `POST /links` with a new, valid code | `201 Created` | `Location: /links/{code}`; JSON body echoes submitted request |
-| `POST /links` with a code shorter than 4 characters or blank/missing | `400 Bad Request` | Basic code validation |
+| `GET /abc123` | `302 Found` | `Location: https://google.com` (seeded mapping) |
+| `GET /missing` | `404 Not Found` | Unknown code |
+| `POST /links` with a new, valid code | `201 Created` | `Location: /{code}`; JSON response echoes submitted request |
+| `POST /links` with a short or blank/missing code | `400 Bad Request` | Basic code validation |
 | `POST /links` with an existing code | `409 Conflict` | Does not replace the existing mapping |
 
 Example JSON body for `POST /links`:
@@ -26,9 +26,18 @@ Example JSON body for `POST /links`:
 }
 ```
 
-The created resource is currently accessible at **`GET /links/dev123`**, which redirects to the stored URL. The route prefix is a deliberate current-implementation detail; the shorter `/{code}` route was used in an earlier milestone.
+The new short link is accessible at **`GET /dev123`**, which redirects to the submitted URL. Route paths like `/health` and `/links` should eventually be reserved to prevent collisions with API endpoints.
 
-Mappings are held in an in-memory `Dictionary<string, string>` and are lost when the process restarts. `TryAdd` rejects existing keys during ordinary sequential requests, but it **does not make the shared dictionary thread-safe**. Concurrency control, proper URL validation and safe redirect policies are follow-up lessons.
+Mappings are held in an in-memory **`ConcurrentDictionary<string, string>`**:
+
+```csharp
+ConcurrentDictionary<string, string> links = new()
+{
+    ["abc123"] = "https://google.com"
+};
+```
+
+The API's direct `TryAdd` and `TryGetValue` calls are thread-safe for concurrent access to this dictionary. It does **not** persist across process restarts or coordinate data across multiple running server processes. It also doesn't automatically make multi-step application workflows atomic.
 
 ## Requirements
 
@@ -46,20 +55,18 @@ In a separate terminal:
 
 ```powershell
 curl.exe -i http://localhost:5001/health
-curl.exe -i http://localhost:5001/links/abc123
-curl.exe -i http://localhost:5001/links/missing
+curl.exe -i http://localhost:5001/abc123
+curl.exe -i http://localhost:5001/missing
 ```
 
-Use `api.http` with a REST Client extension to send the JSON POST request. Sending the same valid POST twice **without restarting the server** is a simple manual check of the 409 duplicate-code branch. Sending a one-character code checks the 400 path. After creating `dev123`, check `GET /links/dev123` to inspect the redirect.
-
-`curl.exe -I` issues **HEAD**, not GET; use `-i` for these GET examples.
+The `api.http` file contains example POST requests. You can send the valid one twice **without restarting the server** to check for 409 Conflict on the second attempt; submit the short-code example to check the 400 branch. After adding a code, check `GET /dev123` for the redirect. `curl.exe -I` sends **HEAD**, not GET; use `-i` for these GET examples.
 
 ## Main files
 
 | File | Purpose |
 | --- | --- |
-| `Program.cs` | Minimal API, request record, in-memory mappings, validation and HTTP routes |
-| `api.http` | Manual REST Client request examples |
+| `Program.cs` | Minimal API, request record, in-memory concurrent mappings, validation, HTTP routes |
+| `api.http` | Manual REST Client request examples (not automated tests) |
 | `url-shorterner-api.csproj` | .NET 10 ASP.NET Core Web SDK project (original filename retained) |
 
 ## Learning milestones
@@ -68,9 +75,11 @@ Use `api.http` with a REST Client extension to send the JSON POST request. Sendi
 - [x] 002 — Dictionary URL mappings, safe lookup and duplicate handling
 - [x] 003 — Minimal API `GET /health`, redirect and 404 responses
 - [x] 004 — JSON-bound `POST /links` with 201, 400 and 409 responses (source-reviewed; manual duplicate check user-reported)
-- [ ] Validate URL inputs and safe redirect behavior
-- [ ] Handle concurrent dictionary access safely
-- [ ] Add SQL persistence with Entity Framework Core
+- [x] 005 — Concurrency exercise: use `ConcurrentDictionary` for safe concurrent link insertion and lookup (source-reviewed)
+- [ ] Validate original URLs, prevent unsafe redirects, and reserve special short codes
+- [ ] Persist mappings using SQL and Entity Framework Core
 - [ ] Add automated HTTP tests, logging, secure configuration and deployment
 
-The engineering-learning notes and assessed lesson history live in the [engineering-learning-vault](https://github.com/lucifron28/engineering-learning-vault). Source review does not replace local build verification or automated tests.
+Future work should include URL validation and abuse prevention before exposure to untrusted clients. Automated tests and independent runtime/load verification are not claimed here.
+
+Conceptual lessons and course progress are tracked in the [engineering-learning-vault](https://github.com/lucifron28/engineering-learning-vault).
