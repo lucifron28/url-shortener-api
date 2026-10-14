@@ -80,7 +80,8 @@ The `api.http` file contains example POST requests for both valid and invalid de
 - [x] 004 — JSON-bound `POST /links` with 201, 400 and 409 responses (source-reviewed; manual duplicate check user-reported)
 - [x] 005 — Concurrency exercise: use `ConcurrentDictionary` for safe concurrent link insertion and lookup (source-reviewed)
 - [x] 006 — Validate destinations as absolute HTTP(S) URIs before insertion (source-reviewed; manual tests learner-reported)
-- [ ] Reserve special short codes and address phishing/redirect-abuse risks
+- [x] 007 — Reject reserved short code `health` case-insensitively (source-reviewed)
+- [ ] Revisit additional reserved names if new GET routes are added; address phishing/redirect-abuse risks
 - [ ] Persist mappings using SQL and Entity Framework Core
 - [ ] Add automated HTTP tests, logging, secure configuration and deployment
 
