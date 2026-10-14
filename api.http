@@ -20,3 +20,31 @@ Content-Type: application/json
     "code": "d",
     "url": "https://github.com"
 }
+
+
+### test invalid url
+POST http://localhost:5001/links
+Content-Type: application/json
+
+{
+    "code": "qwer123",
+    "url": "github.com"
+}
+
+###
+POST http://localhost:5001/links
+Content-Type: application/json
+
+{
+    "code": "qwer124",
+    "url": "javascript:alert(1)"
+}
+
+###
+POST http://localhost:5001/links
+Content-Type: application/json
+
+{
+    "code": "qwer124",
+    "url": "file:///C:/test.txt"
+}
