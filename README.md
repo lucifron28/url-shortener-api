@@ -29,7 +29,7 @@ Example JSON body for `POST /links`:
 
 The new short link is accessible at **`GET /dev123`**, which redirects to the submitted URL.
 
-`IsValidUrl(string? url)` uses `Uri.TryCreate(url, UriKind.Absolute, out Uri? parsed)` and allows only `http:` and `https:` schemes. The validator is used by `POST /links` before a mapping is inserted. This blocks unsupported URI schemes, **not** links to malicious HTTPS websites; broader redirect-abuse prevention remains future work. Route paths like `/health` and `/links` should eventually be reserved to prevent collisions with API endpoints.
+`IsValidUrl(string? url)` uses `Uri.TryCreate(url, UriKind.Absolute, out Uri? parsed)` and allows only `http:` and `https:` schemes. The validator is used by `POST /links` before a mapping is inserted. This blocks unsupported URI schemes, **not** links to malicious HTTPS websites; broader redirect-abuse prevention remains future work. The short code `health` is now reserved case-insensitively because literal GET `/health` takes precedence over dynamic GET `/{code}`. The code `links` is not reserved yet because only POST `/links` is registered literally.
 
 Mappings are held in an in-memory **`ConcurrentDictionary<string, string>`**:
 
@@ -80,7 +80,8 @@ The `api.http` file contains example POST requests for both valid and invalid de
 - [x] 004 — JSON-bound `POST /links` with 201, 400 and 409 responses (source-reviewed; manual duplicate check user-reported)
 - [x] 005 — Concurrency exercise: use `ConcurrentDictionary` for safe concurrent link insertion and lookup (source-reviewed)
 - [x] 006 — Validate destinations as absolute HTTP(S) URIs before insertion (source-reviewed; manual tests learner-reported)
-- [ ] Reserve special short codes and address phishing/redirect-abuse risks
+- [x] 007 — Reject reserved short code `health` case-insensitively (source-reviewed)
+- [ ] Revisit additional reserved names if new GET routes are added; address phishing/redirect-abuse risks
 - [ ] Persist mappings using SQL and Entity Framework Core
 - [ ] Add automated HTTP tests, logging, secure configuration and deployment
 
