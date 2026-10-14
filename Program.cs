@@ -2,7 +2,9 @@
 
 bool IsValidCode(string code)
 {
-    return !string.IsNullOrWhiteSpace(code) && code.Length >= 4;
+    return !string.IsNullOrWhiteSpace(code) && 
+    !string.Equals("health", code, StringComparison.OrdinalIgnoreCase) && 
+    code.Length >= 4;
 }
 
 string BuildShortUrl(string domain, string code)
