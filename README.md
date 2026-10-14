@@ -15,6 +15,7 @@ The server listens at `http://localhost:5001`.
 | `GET /missing` | `404 Not Found` | Unknown code |
 | `POST /links` with a new, valid code | `201 Created` | `Location: /{code}`; JSON response echoes submitted request |
 | `POST /links` with a short or blank/missing code | `400 Bad Request` | Basic code validation |
+| `POST /links` with a missing, relative or non-HTTP(S) destination | `400 Bad Request` | Parsed absolute URI with HTTP/HTTPS-only scheme policy |
 | `POST /links` with an existing code | `409 Conflict` | Does not replace the existing mapping |
 
 Example JSON body for `POST /links`:
@@ -26,7 +27,9 @@ Example JSON body for `POST /links`:
 }
 ```
 
-The new short link is accessible at **`GET /dev123`**, which redirects to the submitted URL. Route paths like `/health` and `/links` should eventually be reserved to prevent collisions with API endpoints.
+The new short link is accessible at **`GET /dev123`**, which redirects to the submitted URL.
+
+`IsValidUrl(string? url)` uses `Uri.TryCreate(url, UriKind.Absolute, out Uri? parsed)` and allows only `http:` and `https:` schemes. The validator is used by `POST /links` before a mapping is inserted. This blocks unsupported URI schemes, **not** links to malicious HTTPS websites; broader redirect-abuse prevention remains future work. Route paths like `/health` and `/links` should eventually be reserved to prevent collisions with API endpoints.
 
 Mappings are held in an in-memory **`ConcurrentDictionary<string, string>`**:
 
@@ -59,7 +62,7 @@ curl.exe -i http://localhost:5001/abc123
 curl.exe -i http://localhost:5001/missing
 ```
 
-The `api.http` file contains example POST requests. You can send the valid one twice **without restarting the server** to check for 409 Conflict on the second attempt; submit the short-code example to check the 400 branch. After adding a code, check `GET /dev123` for the redirect. `curl.exe -I` sends **HEAD**, not GET; use `-i` for these GET examples.
+The `api.http` file contains example POST requests for both valid and invalid destinations (such as scheme-less, `javascript:`, and `file:` URLs). The learner reported testing these plus temporary console checks for null and empty strings; the reviewer did not independently run the application. You can send the valid one twice **without restarting the server** to check for 409 Conflict on the second attempt; submit the short-code example to check the 400 branch. After adding a code, check `GET /dev123` for the redirect. `curl.exe -I` sends **HEAD**, not GET; use `-i` for these GET examples.
 
 ## Main files
 
@@ -76,7 +79,8 @@ The `api.http` file contains example POST requests. You can send the valid one t
 - [x] 003 — Minimal API `GET /health`, redirect and 404 responses
 - [x] 004 — JSON-bound `POST /links` with 201, 400 and 409 responses (source-reviewed; manual duplicate check user-reported)
 - [x] 005 — Concurrency exercise: use `ConcurrentDictionary` for safe concurrent link insertion and lookup (source-reviewed)
-- [ ] Validate original URLs, prevent unsafe redirects, and reserve special short codes
+- [x] 006 — Validate destinations as absolute HTTP(S) URIs before insertion (source-reviewed; manual tests learner-reported)
+- [ ] Reserve special short codes and address phishing/redirect-abuse risks
 - [ ] Persist mappings using SQL and Entity Framework Core
 - [ ] Add automated HTTP tests, logging, secure configuration and deployment
 
