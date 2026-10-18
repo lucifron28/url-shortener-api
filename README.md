@@ -2,7 +2,7 @@
 
 A learning project in **C#, .NET 10, and ASP.NET Core Minimal APIs**. This began as a console exercise and is being expanded one backend concept at a time.
 
-> **Current status (2026-10-14):** Backend lessons 001–013 covering C#, HTTP, Minimal APIs, in-memory concurrent link creation, validation and reserved codes passed source review. Lesson 014 automated HTTP testing is in progress. Test project setup exists; the learner reports `dotnet test UrlShortener.slnx` builds successfully and runs **one empty generated sample test** (not an API integration test). Reviewer has not independently executed the application. This is **not a production-ready URL shortener**.
+> **Current status (2026-10-18):** Backend lessons 001–014 are recorded as completed, including the first meaningful xUnit HTTP integration test. The current source contains **one automated test**: `POST /links` with the reserved short code `health` must return **400 Bad Request**. The learner independently ran `dotnet test urlShortener.slnx` and provided output showing **1 passed, 0 failed, 0 skipped** on 2026-10-18; the reviewer inspected the pushed test source but **did not independently execute the application or test suite**. Other API branches are not yet covered by automated tests. This is **not a production-ready URL shortener**.
 
 ## API behavior
 
@@ -64,17 +64,29 @@ curl.exe -i http://localhost:5001/missing
 
 The `api.http` file contains example POST requests for both valid and invalid destinations (such as scheme-less, `javascript:`, and `file:` URLs). The learner reported testing these plus temporary console checks for null and empty strings; the reviewer did not independently run the application. You can send the valid one twice **without restarting the server** to check for 409 Conflict on the second attempt; submit the short-code example to check the 400 branch. After adding a code, check `GET /dev123` for the redirect. `curl.exe -I` sends **HEAD**, not GET; use `-i` for these GET examples.
 
-## Automated test project (scaffolded, not completed)
+## Automated integration testing (first real test completed)
 
-This repository includes `UrlShortener.slnx`, which groups the root API and `tests/UrlShortener.Tests/UrlShortener.Tests.csproj`. The test project references the API and uses xUnit plus `Microsoft.AspNetCore.Mvc.Testing` for future in-process HTTP integration tests. Root API compilation excludes test source files; the application exposes a partial `Program` class to its test assembly.
+`UrlShortener.slnx` includes the ASP.NET Core API and `tests/UrlShortener.Tests/UrlShortener.Tests.csproj`. The test project references the API and uses xUnit with `Microsoft.AspNetCore.Mvc.Testing` to exercise the application's HTTP pipeline in-process using `WebApplicationFactory<Program>`. The API project excludes `tests/**/*.cs` from its compilation, and `Program.cs` exposes `public partial class Program { }` to support the integration test host.
 
-Run the existing test project with:
+The existing test lives in **`tests/UrlShortener.Tests/LinkCreationTests.cs`**:
+
+- **Arrange:** Create an anonymous JSON payload with `code = "health"` and a valid HTTPS destination.
+- **Act:** Send `POST /links` with `PostAsJsonAsync` using the factory's `HttpClient`.
+- **Assert:** Compare `res.StatusCode` with `HttpStatusCode.BadRequest` (400).
+
+The original generated `UnitTest1.cs` (which contained an empty test) was **removed**; it is not the current automated test.
+
+Run the .NET solution tests using PowerShell or a terminal:
 
 ```powershell
 dotnet test UrlShortener.slnx
 ```
 
-**Verification boundary:** The learner's local output on 2026-10-14 shows **1 passed, 0 failed** and compiler warning `CS8321` (unused `BuildShortUrl`). The only test at the audited GitHub HEAD is `tests/UrlShortener.Tests/UnitTest1.cs`, containing an empty `[Fact]` method: it verifies xUnit test discovery, **not endpoint behavior**. The first HTTP integration test is being written separately, with the initial expected result being POST `/links` + reserved `health` code → `400 Bad Request`.
+Alternatively, open the solution in VS Code with C# Dev Kit and run the test from the Testing view.
+
+**Verification boundary:** Learner-provided local output for this meaningful test reported **1 passed, 0 failed, 0 skipped**, with a successful .NET 10 build. The output also included seven `True`/`False` lines printed by temporary URL validation probes in `Program.cs`; these are **not seven additional tests**. The reviewer inspected the committed test source and supplied output, but did **not independently run** the tests or verify a deployed server.
+
+**Next coverage:** Test valid link creation (**201 Created** and its `Location` header), duplicates (409), missing codes (404), redirects (302), and invalid destinations (400), using isolated test data. When testing redirects through the factory client, disable automatic redirect following if the assertion targets the initial **302** and `Location` response. A later **Robot Framework API-testing module** is planned, but no Robot tests or dependencies have been added yet.
 
 ## Main files
 
@@ -84,7 +96,7 @@ dotnet test UrlShortener.slnx
 | `api.http` | Manual REST Client request examples (not automated tests) |
 | `url-shorterner-api.csproj` | .NET 10 ASP.NET Core Web SDK project (original filename retained) |
 | `UrlShortener.slnx` | Solution grouping API and xUnit test projects |
-| `tests/UrlShortener.Tests/` | xUnit testing scaffold and future HTTP integration tests |
+| `tests/UrlShortener.Tests/LinkCreationTests.cs` | xUnit HTTP integration test of reserved-code rejection (400) |
 
 ## Learning milestones
 
@@ -96,11 +108,13 @@ dotnet test UrlShortener.slnx
 - [x] 006 — Validate destinations as absolute HTTP(S) URIs before insertion (source-reviewed; manual tests learner-reported)
 - [x] 007 — Reject reserved short code `health` case-insensitively (source-reviewed)
 - [ ] Revisit additional reserved names if new GET routes are added; address phishing/redirect-abuse risks
+- [x] 008 — Set up xUnit project and solution; verify test discovery and runner operation
+- [x] 009 — Replace the empty sample test with a meaningful HTTP integration test: reserved `health` → 400 (source-reviewed; learner ran tests successfully)
+- [ ] Add more focused automated HTTP regression cases, starting with a valid 201 and `Location` response
+- [ ] Learn Robot Framework for external API testing (planned; not implemented)
 - [ ] Persist mappings using SQL and Entity Framework Core
-- [x] 008 — Set up xUnit project and solution; local test runner executes one empty sample test (user-reported, source-reviewed)
-- [ ] Write and run meaningful automated HTTP integration tests
 - [ ] Add logging, secure configuration and deployment
 
-Future work should include URL validation and abuse prevention before exposure to untrusted clients. Automated tests and independent runtime/load verification are not claimed here.
+Destination scheme validation is implemented; broader redirect-abuse prevention is still needed before exposure to untrusted clients. **Only one automated HTTP scenario has been tested.** Independent execution of the full application, concurrency/load testing, and deployment verification are not claimed here.
 
 Conceptual lessons and course progress are tracked in the [engineering-learning-vault](https://github.com/lucifron28/engineering-learning-vault).
