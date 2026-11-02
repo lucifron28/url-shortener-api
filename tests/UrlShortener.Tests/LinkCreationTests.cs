@@ -47,7 +47,7 @@ public class LinkCreationTests
     }
 
     [Fact]
-    public async Task TestHeaderLocation()
+    public async Task ShortCodeCreation_ReturnsExpectedLocationHeader()
     {
         using var factory = new WebApplicationFactory<Program>();
         using var client = factory.CreateClient();
