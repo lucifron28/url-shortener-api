@@ -64,14 +64,9 @@ public class LinkCreationTests
 
         // Assert
 
-        // First we make sure the location header exists
-        Assert.True(res.Headers.Contains("Location"));
-
         var LocationHeader = res.Headers.Location?.ToString();
 
-        // my two implementations
-        Assert.Contains("qwerty", LocationHeader);
-
         Assert.Equal("/qwerty", LocationHeader);
+        Assert.Equal(HttpStatusCode.Created, res.StatusCode);
     }
 }
