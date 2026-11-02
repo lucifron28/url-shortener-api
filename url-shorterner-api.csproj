@@ -6,6 +6,9 @@
     <RootNamespace>url_shorterner_api</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <DefaultItemExcludes>
+      $(DefaultItemExcludes);tests/**
+    </DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
