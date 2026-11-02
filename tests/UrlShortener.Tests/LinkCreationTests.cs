@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc.Testing;
 using System.Net.Http.Json;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 
 public class LinkCreationTests
 {
@@ -68,5 +69,27 @@ public class LinkCreationTests
 
         Assert.Equal("/qwerty", LocationHeader);
         Assert.Equal(HttpStatusCode.Created, res.StatusCode);
+    }
+
+    [Fact]
+    public async Task ShortCodeDuplicate_ReturnsConflict()
+    {
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
+
+        // Arrange
+        var data = new
+        {
+            code = "qwer123",
+            url = "https://example.com"
+        };
+
+        // Act
+        var first = await client.PostAsJsonAsync("/links", data);
+        var second = await client.PostAsJsonAsync("/links", data);
+
+        // Assert
+        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
+        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
     }
 }
