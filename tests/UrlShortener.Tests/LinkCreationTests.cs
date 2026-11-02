@@ -45,4 +45,33 @@ public class LinkCreationTests
         // Assert
         Assert.Equal(HttpStatusCode.Created, res.StatusCode);
     }
+
+    [Fact]
+    public async Task TestHeaderLocation()
+    {
+        using var factory = new WebApplicationFactory<Program>();
+        using var client = factory.CreateClient();
+
+        // Arrange
+        var data = new
+        {
+            code = "qwerty",
+            url = "https://example.com"
+        };
+
+        // Act
+        var res = await client.PostAsJsonAsync("/links", data);
+
+        // Assert
+
+        // First we make sure the location header exists
+        Assert.True(res.Headers.Contains("Location"));
+
+        var LocationHeader = res.Headers.Location?.ToString();
+
+        // my two implementations
+        Assert.Contains("qwerty", LocationHeader);
+
+        Assert.Equal("/qwerty", LocationHeader);
+    }
 }
